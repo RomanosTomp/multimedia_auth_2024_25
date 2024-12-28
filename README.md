@@ -1,2 +1,2 @@
 # multimedia_auth_2024_25
-Project dor multimedia systmes auth 2024 25
+Project for multimedia systems auth 2024 25
