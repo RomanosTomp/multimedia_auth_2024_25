@@ -53,4 +53,9 @@ def RPE_frame_st_coder(s0: np.ndarray):
     LARc[LARc < minLARc] = minLARc[LARc < minLARc]
     LARc[LARc > maxLARc] = maxLARc[LARc > maxLARc]
 
+    # calculating the recidual
+    # for now we are not gonna do the linear interpolation with the previous frame
+    coeffs = np.concatenate((np.array([1]), -LARc))
+    residual = lfilter(coeffs, 1, s) # FIR
+
     return LARc, residual
