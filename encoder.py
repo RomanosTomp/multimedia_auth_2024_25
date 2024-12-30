@@ -56,6 +56,6 @@ def RPE_frame_st_coder(s0: np.ndarray):
     # calculating the recidual
     # for now we are not gonna do the linear interpolation with the previous frame
     coeffs = np.concatenate((np.array([1]), -LARc))
-    residual = lfilter(coeffs, 1, s) # FIR
+    curr_frame_st_resd = lfilter(coeffs, 1, s) # FIR
 
-    return LARc, residual
+    return LARc, curr_frame_st_resd
