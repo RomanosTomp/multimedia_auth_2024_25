@@ -29,17 +29,17 @@ def RPE_frame_st_coder(s0: np.ndarray):
     index_matrix = np.abs(np.arange(n).reshape(-1, 1) - np.arange(n).reshape(1, -1))
     R = acf[index_matrix]
     r = acf[1:9]
-    w = np.linalg.solve(R, r) # maybe not linalg (?)
-
+    w = np.linalg.solve(R, r) # maybe not linalg (?) 
+    w = np.concatenate(([1], w))
     # calculating refl coeffs and LAR
     refl_coeffs = polynomial_coeff_to_reflection_coeff(w)
+    
     abs_r = np.abs(refl_coeffs)
     # conditions indexes
     cond1 = abs_r < 0.675
     cond2 = (abs_r >= 0.675) & (abs_r < 0.950)
     cond3 = (abs_r >= 0.950) & (abs_r <= 1.000)
     LAR = np.empty(8)
-    print(refl_coeffs[cond1])
     LAR[cond1] = refl_coeffs[cond1]  # Condition 1
     LAR[cond2] = np.sign(r[cond2]) * (2 * abs_r[cond2] - 0.675)  # Condition 2
     LAR[cond3] = np.sign(r[cond3]) * (8 * abs_r[cond3] - 6.375)  # Condition 3
@@ -50,7 +50,7 @@ def RPE_frame_st_coder(s0: np.ndarray):
     minLARc = np.array([-32, -32, -16, -16, -8, -8, -4, -4])
     maxLARc = np.array([31, 31, 15, 15, 7, 7, 3, 3])
     LARcc = A * LAR + B
-    LARc = round(LARcc + np.sign(LARcc) * 0.5)
+    LARc = np.round(LARcc + np.sign(LARcc) * 0.5)
     LARc[LARc < minLARc] = minLARc[LARc < minLARc]
     LARc[LARc > maxLARc] = maxLARc[LARc > maxLARc]
 

@@ -7,6 +7,8 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     # dequantization of LAR
     A = np.array([20.0, 20.0, 20.0, 20.0, 13.637, 15.0, 8.334, 8.824])
     B = np.array([0.0, 0.0, 4.0, -5.0, 0.184, -3.5, -0.666, -2.235])
+    #print(LARc)
+    #print(curr_frame_st_resd)
     LAR = (LARc - B) / A
 
     # calculating refl coeffs
@@ -22,11 +24,12 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     refl_coeffs[cond3] = np.sign(LAR[cond3]) * (0.125 * abs_LAR[cond3] + 0.796875)  # Condition 3
 
     #calculating polynomial coeffs
-    poly_coeffs = reflection_coeff_to_polynomial_coeff(refl_coeffs)
-    
+    poly_coeffs, _ = reflection_coeff_to_polynomial_coeff(refl_coeffs)
+    print("poly_coeffs:", poly_coeffs)
+    #poly_coeffs = np.array(poly_coeffs)
     #reconstructing the signal from residual
     b = 1
-    a = np.concatenate([1], - poly_coeffs)
+    a = np.concatenate([[1], - poly_coeffs])
     s = lfilter(b, a, curr_frame_st_resd)
 
     # post-processing

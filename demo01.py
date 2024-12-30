@@ -14,7 +14,7 @@ s, fs = sf.read(input_file)
 #Frame edit
 frame_size = 160
 frames = [s[i:i+frame_size] for i in range(0, len(s), frame_size)]
-
+ 
 decoded_frames = []
 
 for frame in frames:
@@ -23,9 +23,11 @@ for frame in frames:
 
         #Encode
         LARc, residual = RPE_frame_st_coder(frame)
+        #print(LARc)
+        #print(residual)
 
         #decode
-        decoded_frame = RPE_frame_st_decoder(LARc, residual)
+        decoded_frame = RPE_frame_st_decoder(residual, LARc)
 
         decoded_frames.append(decoded_frame)
 
