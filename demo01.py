@@ -21,15 +21,15 @@ for frame in frames:
     if len(frame) < frame_size:
         frame = np.pad(frame, (0, frame_size - len(frame)))
 
-        #Encode
-        LARc, residual = RPE_frame_st_coder(frame)
-        #print(LARc)
-        #print(residual)
+    #Encode
+    LARc, residual = RPE_frame_st_coder(frame)
+    print(LARc)
+    print(residual)
 
-        #decode
-        decoded_frame = RPE_frame_st_decoder(residual, LARc)
+    #decode
+    decoded_frame = RPE_frame_st_decoder(residual, LARc)
 
-        decoded_frames.append(decoded_frame)
+    decoded_frames.append(decoded_frame)
 
 decoded_signal = np.hstack(decoded_frames)
 
