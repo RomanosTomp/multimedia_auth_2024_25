@@ -9,16 +9,17 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     B = np.array([0.0, 0.0, 4.0, -5.0, 0.184, -3.5, -0.666, -2.235])
     #print(LARc)
     #print(curr_frame_st_resd)
-    LAR = (LARc - B) / A
+    LARcc = LARc - np.sign(LARc) * 0.5
+    LAR = (LARcc - B) / A
 
     # calculating refl coeffs
     abs_LAR = np.abs(LAR)
     # conditions indexes
     cond1 = abs_LAR < 0.675
-    cond2 = (abs_LAR >= 0.675) & (abs_LAR < 1.225)
-    cond3 = (abs_LAR >= 1.225) & (abs_LAR <= 1.625)
+    cond2 = (abs_LAR >= 0.675) & (abs_LAR < 0.950)
+    cond3 = (abs_LAR >= 0.950) & (abs_LAR <= 1.000)
     
-    refl_coeffs = np.empty(8)
+    refl_coeffs = np.empty_like(LAR)
     refl_coeffs[cond1] = LAR[cond1]  # Condition 1
     refl_coeffs[cond2] = np.sign(LAR[cond2]) * (0.5 * abs_LAR[cond2] + 0.3375)  # Condition 2
     refl_coeffs[cond3] = np.sign(LAR[cond3]) * (0.125 * abs_LAR[cond3] + 0.796875)  # Condition 3
@@ -29,7 +30,7 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     #poly_coeffs = np.array(poly_coeffs)
     #reconstructing the signal from residual
     b = 1
-    a = np.concatenate([[1], - poly_coeffs])
+    a = np.concatenate(([1], - poly_coeffs[:1]))
     s = lfilter(b, a, curr_frame_st_resd)
 
     # post-processing
@@ -38,4 +39,10 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     b1 = 1
     s0 = lfilter(b1, a1, s)
 
-    return s0
+    #Reverse Off-set compensation
+    alpha = 32735 * pow(2,-15)
+    b1 = [1, -1]  
+    a1 = [1, -alpha]
+    decoded_signal = lfilter(a1, b1, s0)
+    
+    return decoded_signal
