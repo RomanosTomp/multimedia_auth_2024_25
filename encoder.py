@@ -23,7 +23,7 @@ def RPE_frame_st_coder(s0: np.ndarray):
     acf = np.zeros(9)
     for k in range(9):
         for i in range(k,160):
-            acf(k) += s(i)*s(i-k)
+            acf[k] += s[i]*s[i-k]
     # constructing R and r to find w
     n = len(acf) - 1
     index_matrix = np.abs(np.arange(n).reshape(-1, 1) - np.arange(n).reshape(1, -1))
@@ -39,6 +39,7 @@ def RPE_frame_st_coder(s0: np.ndarray):
     cond2 = (abs_r >= 0.675) & (abs_r < 0.950)
     cond3 = (abs_r >= 0.950) & (abs_r <= 1.000)
     LAR = np.empty(8)
+    print(refl_coeffs[cond1])
     LAR[cond1] = refl_coeffs[cond1]  # Condition 1
     LAR[cond2] = np.sign(r[cond2]) * (2 * abs_r[cond2] - 0.675)  # Condition 2
     LAR[cond3] = np.sign(r[cond3]) * (8 * abs_r[cond3] - 6.375)  # Condition 3
