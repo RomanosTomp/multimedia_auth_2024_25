@@ -3,10 +3,10 @@ from scipy.signal import lfilter
 from hw_utils import polynomial_coeff_to_reflection_coeff
 
 
-def RPE_frame_st_coder(s0: np.ndarray):
+def RPE_frame_st_coder(s0: np.ndarray, prev_frame_st_resd: np.ndarray):
     
     #Preprocessing
-    alpha = 32735 * pow(2,-15)
+    alpha = 32735 * pow(2,-15)  
     beta = 28180 * pow(2,-15)
 
     # Offset Compensation: y[k] = x[k] - x[k-1] + alpha * y[k-1]
@@ -53,7 +53,7 @@ def RPE_frame_st_coder(s0: np.ndarray):
     LARc = np.round(LARcc + np.sign(LARcc) * 0.5)
     LARc[LARc < minLARc] = minLARc[LARc < minLARc]
     LARc[LARc > maxLARc] = maxLARc[LARc > maxLARc]
-
+    print("LARc:", LARc)
     # calculating the recidual
     # for now we are not gonna do the linear interpolation with the previous frame
     coeffs = np.concatenate((np.array([1]), -LARc))

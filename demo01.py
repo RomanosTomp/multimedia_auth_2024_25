@@ -7,28 +7,29 @@ from decoder import RPE_frame_st_decoder
 
 #Read file
 input_file = 'ena_dio_tria.wav'
-output_file = 'ena_dio_tria_reconstructed.wav'
+output_file = 'ena_dio_tria_reconstructed1.wav'
 
 #Data
-s, fs = sf.read(input_file)
+s0, fs = sf.read(input_file)
 
 #Frame edit
 frame_size = 160
-frames = [s[i:i+frame_size] for i in range(0, len(s), frame_size)]
+frames = [s0[i:i+frame_size] for i in range(0, len(s0), frame_size)]
  
 decoded_frames = []
+residual = np.zeros(160)
 
 for frame in frames:
     if len(frame) < frame_size:
         frame = np.pad(frame, (0, frame_size - len(frame)))
 
     #Encode
-    LARc, residual = RPE_frame_st_coder(frame)
+    LARc, Nc, bc, curr_frame_ex_full, curr_frame_st_resd = RPE_frame_st_coder(frame, residual)
     #print(LARc)
-    #print(residual)
+    print(curr_frame_st_resd)
 
     #decode
-    decoded_frame = RPE_frame_st_decoder(residual, LARc)
+    decoded_frame, curr_frame_st_resd = RPE_frame_st_decoder(curr_frame_st_resd, LARc, Nc, bc, curr_frame_ex_full)
 
     decoded_frames.append(decoded_frame)
 
