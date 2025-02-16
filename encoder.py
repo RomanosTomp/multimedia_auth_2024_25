@@ -26,10 +26,10 @@ def RPE_frame_st_coder(s0: np.ndarray):
             acf[k] += s[i]*s[i-k]
     # constructing R and r to find w
     n = len(acf) - 1
-    index_matrix = np.abs(np.arange(n).reshape(-1, 1) - np.arange(n).reshape(1, -1))
+    index_matrix = np.abs(np.arange(n).reshape(-1, 1) - np.arange(n).reshape(1, -1)) # indexing for R
     R = acf[index_matrix]
     r = acf[1:9]
-    w = np.linalg.solve(R, r) # maybe not linalg (?) 
+    w = np.linalg.solve(R, r)
     w = np.concatenate(([1], w))
     # calculating refl coeffs and LAR
     refl_coeffs = polynomial_coeff_to_reflection_coeff(w)
