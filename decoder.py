@@ -26,7 +26,7 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
 
     #reconstructing the signal from residual
     b = np.array([1.0])
-    a = np.concatenate(([1.0], - poly_coeffs[1:]))
+    a = np.concatenate((np.array([1.0]), - poly_coeffs[1:])) # should it be - poly_coeffs?
     s = lfilter(b, a, curr_frame_st_resd)
 
     # post-processing
@@ -36,3 +36,34 @@ def RPE_frame_st_decoder(curr_frame_st_resd: np.ndarray, LARc: np.ndarray):
     s0 = lfilter(b1, a1, s)
 
     return s0
+
+def RPE_frame_slt_decoder(LARc, Nc, bc, curr_frame_ex_full, prev_frame_st_resd=None):
+
+    # Decode bc values to gain b
+    b_values = [0.0, 0.3, 0.7, 1.0]  # Approximate mapped values for bc
+    bc_decoded = np.array([b_values[b] for b in bc])
+
+    if prev_frame_st_resd is None:
+        prev_frame_st_resd = np.zeros(160)  # First frame case
+
+    # Buffer containing previous + current frame residuals
+    both_frame_resd = np.concatenate((prev_frame_st_resd, np.zeros(160)))
+
+    # Initialize reconstructed current frame residual
+    curr_frame_st_resd = np.zeros(160)
+
+    # Loop through subframes
+    for j in range(4):
+        i = j * 40  # Subframe index for d'(n) in current frame
+        p = 160 + j * 40  # Subframe index in full residual buffer
+
+        # Reconstruct long-term residual
+        curr_frame_st_resd[i:i+40] = curr_frame_ex_full[i:i+40] + bc_decoded[j] * both_frame_resd[p-Nc[j]: p-Nc[j]+40]
+
+        # Store the reconstructed short-term residual in buffer
+        both_frame_resd[p:p+40] = curr_frame_st_resd[i:i+40]
+
+    # Apply short-term synthesis filtering (inverse of encoder)
+    s0 = RPE_frame_st_decoder(curr_frame_st_resd, LARc)
+
+    return s0, curr_frame_st_resd

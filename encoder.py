@@ -60,3 +60,61 @@ def RPE_frame_st_coder(s0: np.ndarray):
     curr_frame_st_resd = lfilter(coeffs, 1, s) # FIR
 
     return LARc, curr_frame_st_resd
+
+def RPE_frame_slt_coder(s0: np.ndarray, prev_frame_st_resd: np.ndarray = None):
+    # curr_frame_st_resd_d is d(n) of current frame
+    # prev_frame_st_resd is d'(n) of previous frame
+    # curr_frame_st_resd will be d'(n) of current frame
+    Nc = []
+    bc = []
+    curr_frame_ex_full = np.zeros(160)
+    LARc, curr_frame_st_resd_d = RPE_frame_st_coder(s0)
+    if prev_frame_st_resd is None: # if first frame of voice sample
+        prev_frame_st_resd = np.zeros(160) 
+
+    both_frame_resd = np.concatenate((prev_frame_st_resd, np.zeros(160)))
+    for j in range(4):
+        i = j * 40 # starting subframe index for d(n)
+        l = j * 40 + 40 # starting subframe index for d'(n) (previous+current)
+        p = j * 40 + 160 # starting subframe of current frame  for d'(n)
+        temp_d = curr_frame_st_resd_d[i:i+40] # d(n)
+        temp_prev_d = both_frame_resd[l:l+120] # d'(n)
+        N, b = RPE_subframe_slt_lte(temp_d, temp_prev_d)
+        Nc.append(N) # quantization and coding of N,b
+        if b <= 0.2:
+            bc.append(0)
+        elif (b <= 0.5) & (b > 0.2):
+            bc.append(1)
+        elif (b <= 0.8) & (b > 0.5):
+            bc.append(2)
+        else:
+            bc.append(3)
+        
+        curr_frame_ex_full[i:i+40] = temp_d - bc[-1] * both_frame_resd[p-Nc[-1]: p-Nc[-1]+40]
+        both_frame_resd[p:p+40] = curr_frame_ex_full[i:i+40] + b * both_frame_resd[p-N:p-N+40]
+
+    curr_frame_st_resd = both_frame_resd[160:320]
+    return LARc, Nc, bc, curr_frame_ex_full, curr_frame_st_resd
+
+
+def RPE_subframe_slt_lte(
+    d: np.ndarray,
+    prev_d: np.ndarray
+):
+    # Define possible lag values (40 ≤ λ ≤ 120)
+    lag_range = np.arange(40, 121)
+
+    # Compute cross-correlation R(λ) for each λ
+    R_values = np.array([
+        np.sum(d * prev_d[120-lag:160-lag]) for lag in lag_range
+    ])
+
+    # Find the lag N that maximizes cross-correlation
+    N = lag_range[np.argmax(R_values)]
+
+    # Compute gain factor b using the formula
+    numerator = np.sum(d * prev_d[120-N:160-N])
+    denominator = np.sum(prev_d[120-N:160-N] ** 2)
+
+    b = numerator / denominator if denominator != 0 else 0  # Avoid division by zero
+    return N, b
