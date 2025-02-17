@@ -23,10 +23,8 @@ for frame in frames:
     if len(frame) < frame_size:
         frame = np.pad(frame, (0, frame_size - len(frame)))
 
-    #Encode
+    #encode
     LARc, residual = RPE_frame_st_coder(frame)
-    #print(LARc)
-    print(residual)
 
     #decode
     decoded_frame = RPE_frame_st_decoder(residual, LARc)
@@ -52,13 +50,29 @@ for file_name in files_in_directory:
         file_size = os.path.getsize(full_path)
         print(f"{file_name}: {file_size / 1024:.2f} KB")  # Convert bytes to KB
 
-# Plot original vs. reconstructed signal
-plt.figure(figsize=(10, 4))
-plt.plot(s, label="Original Signal", linestyle="dashed", alpha=0.7)
-plt.plot(decoded_signal, label="Reconstructed Signal", linewidth=2)
-plt.legend()
-plt.title("Waveform Comparison: Original vs Reconstructed")
-plt.xlabel("Sample Index")
-plt.ylabel("Amplitude")
-plt.grid()
+# Create subplots
+fig, axs = plt.subplots(2, 1, figsize=(10, 5))
+
+# Plot the original signal
+axs[0].plot(s, label="Original Signal", linewidth=2)
+axs[0].set_title("Original Signal")
+axs[0].set_xlabel("Samples")
+axs[0].set_ylabel("Amplitude")
+axs[0].grid(True)
+
+# Plot the reconstructed signal
+axs[1].plot(decoded_signal, label="Reconstructed Signal", linewidth=2)
+axs[1].set_title("Reconstructed Signal")
+axs[1].set_xlabel("Samples")
+axs[1].set_ylabel("Amplitude")
+axs[1].grid(True)
+
+# Display the legend and title
+for ax in axs:
+    ax.legend()
+
+# Add a title for the entire figure
+plt.suptitle("Original vs Reconstructed Short Term Analysis", fontsize=16)
+
+plt.tight_layout()  # Adjust layout to prevent overlapping
 plt.show()

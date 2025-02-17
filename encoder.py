@@ -30,7 +30,8 @@ def RPE_frame_st_coder(s0: np.ndarray):
     R = acf[index_matrix]
     r = acf[1:9]
     w = np.linalg.solve(R, r)
-    w = np.concatenate(([1], w))
+
+    w = np.concatenate(([100], w))
     # calculating refl coeffs and LAR
     refl_coeffs = polynomial_coeff_to_reflection_coeff(w)
     
@@ -89,7 +90,7 @@ def RPE_frame_slt_coder(s0: np.ndarray, prev_frame_st_resd: np.ndarray = None):
             bc.append(2)
         else:
             bc.append(3)
-        
+        # calculate e and d' recursively
         curr_frame_ex_full[i:i+40] = temp_d - bc[-1] * both_frame_resd[p-Nc[-1]: p-Nc[-1]+40]
         both_frame_resd[p:p+40] = curr_frame_ex_full[i:i+40] + b * both_frame_resd[p-N:p-N+40]
 
@@ -101,20 +102,21 @@ def RPE_subframe_slt_lte(
     d: np.ndarray,
     prev_d: np.ndarray
 ):
-    # Define possible lag values (40 ≤ λ ≤ 120)
+    # define possible lag values (40 ≤ lambda ≤ 120)
     lag_range = np.arange(40, 121)
 
-    # Compute cross-correlation R(λ) for each λ
+    # compute cross-correlation R for each lambda
     R_values = np.array([
         np.sum(d * prev_d[120-lag:160-lag]) for lag in lag_range
     ])
 
-    # Find the lag N that maximizes cross-correlation
+    # find the lag N that maximizes cross-correlation
     N = lag_range[np.argmax(R_values)]
 
-    # Compute gain factor b using the formula
+    # compute gain factor b using the formula
     numerator = np.sum(d * prev_d[120-N:160-N])
     denominator = np.sum(prev_d[120-N:160-N] ** 2)
 
-    b = numerator / denominator if denominator != 0 else 0  # Avoid division by zero
+    b = numerator / denominator if denominator != 0 else 0  # avoid division by zero
+    print(b)
     return N, b
